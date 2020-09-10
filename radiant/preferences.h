@@ -25,6 +25,7 @@
 #include "dialog.h"
 #include "gtkr_list.h"
 //#include "profile.h"
+#include "gamepack.h"
 
 #ifdef _WIN32
 #define NVIDIA_AERO_HACK
@@ -202,40 +203,6 @@ void Dump();
    select games, copy editing assets and write out configuration files
  */
 
-#define Q3_GAME "q3.game"
-#define URT_GAME "urt.game"
-#define UFOAI_GAME "ufoai.game"
-#define QUETOO_GAME "quetoo.game"
-#define WARSOW_GAME "warsow.game"
-#define NEXUIZ_GAME "nexuiz.game"
-#define Q2_GAME "q2.game"
-#define TREMULOUS_GAME "tremulous.game"
-#define JA_GAME "ja.game"
-#define REACTION_GAME "reaction.game"
-#define ET_GAME "et.game"
-#define QL_GAME "ql.game"
-#define STVEF_GAME "stvef.game"
-#define WOLF_GAME "wolf.game"
-#define Q1_GAME "q1.game"
-#define UNVANQUISHED_GAME "unvanquished.game"
-
-#define Q3_PACK "Q3Pack"
-#define URT_PACK "UrTPack"
-#define UFOAI_PACK "UFOAIPack"
-#define QUETOO_PACK "QuetooPack"
-#define WARSOW_PACK "WarsowPack"
-#define NEXUIZ_PACK "NexuizPack"
-#define Q2_PACK "Q2Pack"
-#define TREMULOUS_PACK "TremulousPack"
-#define JA_PACK "JAPack"
-#define REACTION_PACK "ReactionPack"
-#define ET_PACK "ETPack"
-#define QL_PACK "QLPack"
-#define STVEF_PACK "STVEFPack"
-#define WOLF_PACK "WolfPack"
-#define Q1_PACK "Q1Pack"
-#define UNVANQUISHED_PACK "UnvanquishedPack"
-
 class CGameInstall : public Dialog {
 public:
   CGameInstall();
@@ -247,27 +214,6 @@ public:
   static void OnBtnBrowseExecutables( GtkWidget *widget, gpointer data );
   static void OnGameSelectChanged( GtkWidget *widget, gpointer data );
 
-  enum gameType_e {
-	GAME_NONE = 0,
-	GAME_Q3 = 1,
-	GAME_URT,
-	GAME_UFOAI,
-	GAME_QUETOO,
-	GAME_WARSOW,
-	GAME_NEXUIZ,
-	GAME_Q2,
-	GAME_TREMULOUS,
-	GAME_JA,
-	GAME_REACTION,
-	GAME_ET,
-	GAME_QL,
-	GAME_STVEF,
-	GAME_WOLF,
-	GAME_Q1,
-	GAME_UNVANQUISHED,
-	GAME_COUNT
-  };
-
 protected:
   Str m_strName;
   Str m_strMod;
@@ -276,7 +222,8 @@ protected:
   int m_nComboSelect;
 
   // maps from m_nComboSelect to the games
-  int m_availGames[GAME_COUNT];
+  CGamePack** m_availGames;
+  int m_availGamesCount;
 
 };
 

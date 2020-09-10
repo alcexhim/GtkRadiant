@@ -3347,7 +3347,8 @@ void PrefsDlg::DoSensitivity(){
  */
 
 CGameInstall::CGameInstall() {
-	memset( m_availGames, 0, sizeof( m_availGames ) );
+	m_availGames = (CGamePack**) malloc( sizeof(CGamePack*) * 1 );
+	m_availGamesCount = 0;
 }
 
 void CGameInstall::OnBtnBrowseEngine( GtkWidget *widget, gpointer data ) {
@@ -3394,8 +3395,8 @@ void CGameInstall::OnGameSelectChanged( GtkWidget *widget, gpointer data ) {
 	GtkWidget *entry = GTK_WIDGET( g_object_get_data( G_OBJECT( i->m_pWidget ), "executable_entry" ) );
 	GtkWidget *button = GTK_WIDGET( g_object_get_data( G_OBJECT( i->m_pWidget ), "executable_button" ) );
 
-	int game_id = i->m_availGames[ i->m_nComboSelect ];
-	if ( game_id == GAME_Q2 || game_id == GAME_QUETOO ) {
+	CGamePack* game_id = i->m_availGames[ i->m_nComboSelect ];
+	if ( game_id->HasCustomEngine ) {
 		gtk_widget_show( label );
 		gtk_widget_show( entry );
 		gtk_widget_show( button );
@@ -3435,25 +3436,11 @@ void CGameInstall::BuildDialog() {
 	gtk_widget_show( game_select_combo );
 
 	int iGame = 0;
-	while ( m_availGames[ iGame ] != GAME_NONE ) {
-		switch ( m_availGames[ iGame ] ) {
-		case GAME_Q1:
-			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Quake" ) );
-			break;
-		case GAME_Q2:
-			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Quake II" ) );
-			break;
-		case GAME_Q3:
-			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Quake III Arena and mods" ) );
-			break;
-		case GAME_URT:
-			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Urban Terror (standalone)" ) );
-			break;
+	while ( iGame < m_availGamesCount ) {
+		gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( m_availGames[ iGame ]->Title.GetBuffer() ) );
+		/*
 		case GAME_UFOAI:
 			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "UFO: Alien Invasion" ) );
-			break;
-		case GAME_QUETOO:
-			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Quetoo" ) );
 			break;
 		case GAME_WARSOW:
 			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Warsow" ) );
@@ -3464,28 +3451,10 @@ void CGameInstall::BuildDialog() {
 		case GAME_TREMULOUS:
 			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Tremulous" ) );
 			break;
-		case GAME_JA:
-			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Jedi Academy and mods" ) );
-			break;
 		case GAME_REACTION:
 			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Reaction Quake 3" ) );
 			break;
-		case GAME_ET:
-			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Wolfenstein: Enemy Territory" ) );
-			break;
-		case GAME_QL:
-			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Quake Live" ) );
-			break;
-		case GAME_STVEF:
-			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Star Trek - Voyager: Elite Force" ) );
-			break;
-		case GAME_WOLF:
-			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Return To Castle Wolfenstein" ) );
-			break;
-		case GAME_UNVANQUISHED:
-			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( game_select_combo ), _( "Unvanquished" ) );
-			break;
-		}
+		*/
 		iGame++;
 	}
 	AddDialogData( game_select_combo, &m_nComboSelect, DLG_COMBO_BOX_INT );
@@ -3574,7 +3543,7 @@ void CGameInstall::BuildDialog() {
 
 void CGameInstall::Run() {
 	ScanGames();
-	if ( m_availGames[0] == GAME_NONE ) {
+	if ( m_availGamesCount == 0 ) {
 		return;
 	}
 	if ( DoModal() == IDCANCEL ) {
@@ -3590,74 +3559,8 @@ void CGameInstall::Run() {
 		radCreateDirectory( gameFilePath );
 	}
 
-	switch ( m_availGames[ m_nComboSelect ] ) {
-	case GAME_Q1:
-		gamePack = Q1_PACK;
-		gameFilePath += Q1_GAME;
-		break;
-	case GAME_Q2:
-		gamePack = Q2_PACK;
-		gameFilePath += Q2_GAME;
-		break;
-	case GAME_Q3:
-		gamePack = Q3_PACK;
-		gameFilePath += Q3_GAME;
-		break;
-	case GAME_URT:
-		gamePack = URT_PACK;
-		gameFilePath += URT_GAME;
-		break;
-	case GAME_UFOAI:
-		gamePack = UFOAI_PACK;
-		gameFilePath += UFOAI_GAME;
-		break;
-	case GAME_QUETOO:
-		gamePack = QUETOO_PACK;
-		gameFilePath += QUETOO_GAME;
-		break;
-	case GAME_WARSOW:
-		gameFilePath += WARSOW_GAME;
-		gamePack = WARSOW_PACK;
-		break;
-	case GAME_NEXUIZ:
-		gamePack = NEXUIZ_PACK;
-		gameFilePath += NEXUIZ_GAME;
-		break;
-	case GAME_TREMULOUS:
-		gamePack = TREMULOUS_PACK;
-		gameFilePath += TREMULOUS_GAME;
-		break;
-	case GAME_JA:
-		gamePack = JA_PACK;
-		gameFilePath += JA_GAME;
-		break;
-	case GAME_REACTION:
-		gamePack = REACTION_PACK;
-		gameFilePath += REACTION_GAME;
-		break;
-	case GAME_ET:
-		gamePack = ET_PACK;
-		gameFilePath += ET_GAME;
-		break;
-	case GAME_QL:
-		gamePack = QL_PACK;
-		gameFilePath += QL_GAME;
-		break;
-	case GAME_STVEF:
-		gamePack = STVEF_PACK;
-		gameFilePath += STVEF_GAME;
-		break;
-	case GAME_WOLF:
-		gamePack = WOLF_PACK;
-		gameFilePath += WOLF_GAME;
-		break;
-	case GAME_UNVANQUISHED:
-		gamePack = UNVANQUISHED_PACK;
-		gameFilePath += UNVANQUISHED_GAME;
-		break;
-	default:
-		Error( "Invalid game selected: %d", m_availGames[ m_nComboSelect ] );
-	}
+	gamePack = m_availGames[ m_nComboSelect ]->GamePack;
+	gameFilePath += m_availGames[ m_nComboSelect ]->GameFilePath;
 
 	Str gameInstallPath = g_strAppPath.GetBuffer();
 	gameInstallPath += "installs/";
@@ -3670,7 +3573,10 @@ void CGameInstall::Run() {
 	radCopyTree( gameInstallPath.GetBuffer(), m_strEngine.GetBuffer() );
 
 	Sys_Printf( "Writing game file: %s\n", gameFilePath.GetBuffer() );
-
+	
+	Str gameInstallGameFile = gameInstallPath.GetBuffer();
+	gameInstallGameFile += "gamepack.game";
+	
 	FILE * fg = fopen( gameFilePath.GetBuffer(), "w" );
 	if ( fg == NULL ) {
 		Error( "Failed to open %s for writing\n", gameFilePath.GetBuffer() );
@@ -3687,176 +3593,11 @@ void CGameInstall::Run() {
 	if ( m_strExecutables.GetLength() > 0 ) {
 		fprintf( fg, "  " EXECUTABLES_ATTRIBUTE "=\"%s\"\n", m_strExecutables.GetBuffer() );
 	}
-
-	switch ( m_availGames[ m_nComboSelect ] ) {
-	case GAME_Q1: {
-		fprintf( fg, "  idtech2=\"true\"\n" );
-		fprintf( fg, "  prefix=\".quake1\"\n" );
-		fprintf( fg, "  basegame=\"id1\"\n" );
-		fprintf( fg, "  no_patch=\"true\"\n" );
-		fprintf( fg, "  default_scale=\"1.0\"\n" );
-
-		break;
+	
+	for (int i = 0; i < m_availGames[ m_nComboSelect ]->CustomAttributes.size(); i++) {
+		fprintf( fg, "  %s=\"%s\"\n", m_availGames[ m_nComboSelect ]->CustomAttributes.at(i).Name.GetBuffer(), m_availGames[ m_nComboSelect ]->CustomAttributes.at(i).Value.GetBuffer() );
 	}
-	case GAME_Q2: {
-		fprintf( fg, "  idtech2=\"true\"\n" );
-		fprintf( fg, "  prefix=\".quake2\"\n" );
-		fprintf( fg, "  basegame=\"baseq2\"\n" );
-		fprintf( fg, "  no_patch=\"true\"\n" );
-		fprintf( fg, "  default_scale=\"1.0\"\n" );
-
-		break;
-	}
-	case GAME_Q3: {
-		fprintf( fg, "  prefix=\".q3a\"\n" );
-		fprintf( fg, "  basegame=\"baseq3\"\n" );
-		// Hardcoded fix for "missing" shaderlist in gamepack
-		Str dest = m_strEngine.GetBuffer();
-		dest += "/baseq3/scripts/shaderlist.txt";
-		if( CheckFile( dest.GetBuffer() ) != PATH_FILE ) {
-			Str source = gameInstallPath.GetBuffer();
-			source += "baseq3/scripts/default_shaderlist.txt";
-			radCopyFile( source.GetBuffer(), dest.GetBuffer() );
-		}
-		break;
-	}
-	case GAME_URT: {
-		fprintf( fg, "  prefix=\".q3a\"\n" );
-		fprintf( fg, "  basegame=\"q3ut4\"\n" );
-		break;
-	}
-	case GAME_UFOAI: {
-		fprintf( fg, "  prefix=\".ufoai\"\n" );
-		fprintf( fg, "  basegame=\"base\"\n" );
-		fprintf( fg, "  no_patch=\"true\"\n" );
-		break;
-	}
-	case GAME_QUETOO: {
-#if defined( __linux__ ) || defined( __FreeBSD__ ) || defined( __APPLE__ )
-		fprintf( fg, "  " ENGINE_ATTRIBUTE "=\"quetoo\"\n" );
-		fprintf( fg, "  " PREFIX_ATTRIBUTE "=\".quetoo\"\n" );
-#elif _WIN32
-		fprintf( fg, "  " ENGINE_ATTRIBUTE "=\"quetoo.exe\"\n" );
-		fprintf( fg, "  " PREFIX_ATTRIBUTE "=\"Quetoo\"\n" );
-#endif
-		fprintf( fg, "  idtech2=\"true\"\n" );
-		fprintf( fg, "  basegame=\"default\"\n" );
-		fprintf( fg, "  no_patch=\"true\"\n" );
-		fprintf( fg, "  default_scale=\"0.25\"\n" );
-		break;
-	}
-	case GAME_WARSOW: {
-		fprintf( fg, "  prefix=\".warsow\"\n" );
-		fprintf( fg, "  basegame=\"basewsw\"\n" );
-		break;
-	}
-	case GAME_NEXUIZ: {
-		fprintf( fg, "  prefix=\".nexuiz\"\n" );
-		fprintf( fg, "  basegame=\"data\"\n" );
-		break;
-	}
-	case GAME_TREMULOUS: {
-		fprintf( fg, "  prefix=\".tremulous\"\n" );
-		fprintf( fg, "  basegame=\"base\"\n" );
-		break;
-	}
-	case GAME_JA: {
-		fprintf( fg, "  prefix=\".ja\"\n" );
-		fprintf( fg, "  basegame=\"base\"\n" );
-		fprintf( fg, "  shaderpath=\"shaders\"\n" );
-		fprintf( fg, "  default_scale=\"0.25\"\n" );
-		fprintf( fg, "  caulk_shader=\"textures/system/caulk\"\n" );
-		// Hardcoded fix for "missing" shaderlist in gamepack
-		Str dest = m_strEngine.GetBuffer();
-		dest += "/base/shaders/shaderlist.txt";
-		if( CheckFile( dest.GetBuffer() ) != PATH_FILE ) {
-			Str source = gameInstallPath.GetBuffer();
-			source += "base/scripts/default_shaderlist.txt";
-			radCopyFile( source.GetBuffer(), dest.GetBuffer() );
-		}
-		break;
-	}
-	case GAME_REACTION: {
-		fprintf( fg, "  prefix=\".Reaction\"\n" );
-		fprintf( fg, "  basegame=\"Boomstick\"\n" );
-		fprintf( fg, "  default_scale=\"0.5\"\n" );
-		break;
-	}
-	case GAME_ET: {
-#ifdef _WIN32
-		fprintf( fg, "  " ENGINE_ATTRIBUTE "=\"ET.exe\"\n");
-#elif defined( __linux__ ) || defined( __FreeBSD__ )
-		fprintf( fg, "  " ENGINE_ATTRIBUTE "=\"et\"\n" );
-#endif
-		fprintf( fg, "  prefix=\".etwolf\"\n" );
-		fprintf( fg, "  basegame=\"etmain\"\n" );
-		// Hardcoded fix for "missing" shaderlist in gamepack
-		Str dest = m_strEngine.GetBuffer();
-		dest += "/etmain/scripts/shaderlist.txt";
-		if( CheckFile( dest.GetBuffer() ) != PATH_FILE ) {
-			Str source = gameInstallPath.GetBuffer();
-			source += "etmain/scripts/default_shaderlist.txt";
-			radCopyFile( source.GetBuffer(), dest.GetBuffer() );
-		}
-		break;
-	}
-	case GAME_QL: {
-		fprintf( fg, "  prefix=\".quakelive/quakelive/home\"\n" );
-		fprintf( fg, "  basegame=\"baseq3\"\n" );
-		// Hardcoded fix for "missing" shaderlist in gamepack
-		Str dest = m_strEngine.GetBuffer();
-		dest += "/baseq3/scripts/shaderlist.txt";
-		if ( CheckFile( dest.GetBuffer() ) != PATH_FILE ) {
-			Str source = gameInstallPath.GetBuffer();
-			source += "baseq3/scripts/default_shaderlist.txt";
-			radCopyFile( source.GetBuffer(), dest.GetBuffer() );
-		}
-		break;
-	}
-	case GAME_STVEF: {
-		fprintf( fg, "  prefix=\".stvef\"\n" );
-		fprintf( fg, "  basegame=\"baseEF\"\n" );
-		fprintf( fg, "  shaderpath=\"scripts\"\n" );
-		fprintf( fg, "  default_scale=\"0.25\"\n" );
-		fprintf( fg, "  caulk_shader=\"textures/common/caulk\"\n" );
-		// Hardcoded fix for "missing" shaderlist in gamepack
-		Str dest = m_strEngine.GetBuffer();
-		dest += "/baseEF/scripts/shaderlist.txt";
-		if( CheckFile( dest.GetBuffer() ) != PATH_FILE ) {
-			Str source = gameInstallPath.GetBuffer();
-			source += "baseEF/scripts/default_shaderlist.txt";
-			radCopyFile( source.GetBuffer(), dest.GetBuffer() );
-		}
-		break;
-	}
-	case GAME_WOLF: {
-		fprintf( fg, "  prefix=\".wolf\"\n" );
-		fprintf( fg, "  basegame=\"main\"\n" );
-		// Hardcoded fix for "missing" shaderlist in gamepack
-		Str dest = m_strEngine.GetBuffer();
-		dest += "/main/scripts/shaderlist.txt";
-		if( CheckFile( dest.GetBuffer() ) != PATH_FILE ) {
-			Str source = gameInstallPath.GetBuffer();
-			source += "main/scripts/default_shaderlist.txt";
-			radCopyFile( source.GetBuffer(), dest.GetBuffer() );
-		}
-		break;
-	}
-	case GAME_UNVANQUISHED: {
-		fprintf( fg, "  prefix=\".unvanquished\"\n" );
-		fprintf( fg, "  basegame=\"pkg\"\n" );
-
-		// Hardcoded fix for "missing" shaderlist in gamepack
-		Str dest = m_strEngine.GetBuffer();
-		dest += "/pkg/scripts/shaderlist.txt";
-		if( CheckFile( dest.GetBuffer() ) != PATH_FILE ) {
-			Str source = gameInstallPath.GetBuffer();
-			source += "pkg/scripts/default_shaderlist.txt";
-			radCopyFile( source.GetBuffer(), dest.GetBuffer() );
-		}
-		break;
-	}
-	}
+	
 	fprintf( fg, "/>\n" );
 	fclose( fg );
 }
@@ -3875,55 +3616,33 @@ void CGameInstall::ScanGames() {
 	pakPaths += "installs/";
 	FindFiles fileScan( pakPaths.GetBuffer() );
 	while ( ( dirname = fileScan.NextFile() ) != NULL ) {
-		if ( stricmp( dirname, Q3_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_Q3;
+		Str gameIni = pakPaths.GetBuffer();
+		gameIni += dirname;
+		gameIni += "/gamepack.def";
+		
+		struct stat *statbuf = (struct stat *)malloc(sizeof(struct stat));
+		if ( stat( gameIni.GetBuffer(), statbuf ) == 0 ) {
+			Sys_Printf( "Installable gamepack ini found in %s\n", gameIni.GetBuffer() );
+			
+			m_availGamesCount++;
+			//Sys_Printf( "attempting to realloc CGamePack** size %d\n", m_availGamesCount );
+			m_availGames = (CGamePack**) realloc(m_availGames, sizeof(CGamePack*) * (m_availGamesCount) );
+			//Sys_Printf( "attempting to create a new CGamePack* size 1\n" );
+			m_availGames [ iGame ] = CGamePack::Load( gameIni );
+			Sys_Printf( "setting up the new CGamePack[%d] ...\n", iGame );
+			m_availGames [ iGame ]->GamePack = dirname;
+			Sys_Printf("dirname = %s\n", dirname);
+			
+			iGame++;
 		}
-		if ( stricmp( dirname, URT_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_URT;
-		}
-		if ( stricmp( dirname, UFOAI_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_UFOAI;
-		}
-		if ( stricmp( dirname, QUETOO_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_QUETOO;
-		}
-		if ( stricmp( dirname, WARSOW_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_WARSOW;
-		}
-		if ( stricmp( dirname, NEXUIZ_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_NEXUIZ;
-		}
-		if ( stricmp( dirname, Q2_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_Q2;
-		}
-		if ( stricmp( dirname, TREMULOUS_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_TREMULOUS;
-		}
-		if ( stricmp( dirname, JA_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_JA;
-		}
-		if ( stricmp( dirname, REACTION_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_REACTION;
-		}
-		if ( stricmp( dirname, ET_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_ET;
-		}
-		if ( stricmp( dirname, QL_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_QL;
-		}
-		if ( stricmp( dirname, STVEF_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_STVEF;
-		}
-		if ( stricmp( dirname, WOLF_PACK ) == 0) {
-			m_availGames[ iGame++ ] = GAME_WOLF;
-		}
-		if ( stricmp( dirname, Q1_PACK ) == 0 ) {
-			m_availGames[ iGame++ ] = GAME_Q1;
-		}
-		if ( stricmp( dirname, UNVANQUISHED_PACK ) == 0) {
-			m_availGames[ iGame++ ] = GAME_UNVANQUISHED;
+		else {
+			Sys_Printf( "WARNING: installable gamepack ini NOT found in %s\n", gameIni.GetBuffer() );
 		}
 	}
-	Sys_Printf( "No installable games found in: %s\n",
+	m_availGamesCount = iGame;
+	
+	if ( m_availGamesCount == 0 ) {
+		Sys_Printf( "No installable games found in: %s\n",
 				pakPaths.GetBuffer() );
+	}
 }
