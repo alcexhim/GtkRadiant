@@ -28,6 +28,8 @@ CGamePack* CGamePack::Load( Str filename ) {
 				pack->Title = propValue.GetBuffer();
 			} else if (propName == "gamepack") {
 				pack->GameFilePath = propValue.GetBuffer();
+			} else if (propName == "customengine") {
+				pack->HasCustomEngine = (propValue == "true");
 			}
 			else if (propName != "" && propValue != "") {
 				CGamePackCustomAttribute attr;
