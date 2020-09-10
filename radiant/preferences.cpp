@@ -3574,9 +3574,6 @@ void CGameInstall::Run() {
 
 	Sys_Printf( "Writing game file: %s\n", gameFilePath.GetBuffer() );
 	
-	Str gameInstallGameFile = gameInstallPath.GetBuffer();
-	gameInstallGameFile += "gamepack.game";
-	
 	FILE * fg = fopen( gameFilePath.GetBuffer(), "w" );
 	if ( fg == NULL ) {
 		Error( "Failed to open %s for writing\n", gameFilePath.GetBuffer() );
@@ -3622,21 +3619,17 @@ void CGameInstall::ScanGames() {
 		
 		struct stat *statbuf = (struct stat *)malloc(sizeof(struct stat));
 		if ( stat( gameIni.GetBuffer(), statbuf ) == 0 ) {
-			Sys_Printf( "Installable gamepack ini found in %s\n", gameIni.GetBuffer() );
+			Sys_Printf( "loading installable gamepack.def from %s\n", gameIni.GetBuffer() );
 			
 			m_availGamesCount++;
-			//Sys_Printf( "attempting to realloc CGamePack** size %d\n", m_availGamesCount );
 			m_availGames = (CGamePack**) realloc(m_availGames, sizeof(CGamePack*) * (m_availGamesCount) );
-			//Sys_Printf( "attempting to create a new CGamePack* size 1\n" );
 			m_availGames [ iGame ] = CGamePack::Load( gameIni );
-			Sys_Printf( "setting up the new CGamePack[%d] ...\n", iGame );
 			m_availGames [ iGame ]->GamePack = dirname;
-			Sys_Printf("dirname = %s\n", dirname);
 			
 			iGame++;
 		}
 		else {
-			Sys_Printf( "WARNING: installable gamepack ini NOT found in %s\n", gameIni.GetBuffer() );
+			Sys_Printf( "WARNING: installable gamepack.def NOT found in %s\n", gameIni.GetBuffer() );
 		}
 	}
 	m_availGamesCount = iGame;
